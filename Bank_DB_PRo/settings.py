@@ -50,7 +50,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'bankDBR.urls'
+ROOT_URLCONF = 'b.urls'
 
 TEMPLATES = [
     {
