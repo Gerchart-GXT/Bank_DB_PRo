@@ -37,3 +37,12 @@ class AccountForm(forms.ModelForm):
         model = AccountInfo
         fields = ['username', 'password', 'invcode']
 
+
+# 登录表单
+class LoginForm(forms.Form):
+    username = forms.CharField(max_length=100, error_messages={
+        'required': '请输入用户名。',
+    })
+    password = forms.CharField(error_messages={
+        'required': '请输入密码。'
+    })

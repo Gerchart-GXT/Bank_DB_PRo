@@ -10,7 +10,7 @@ class AccountInfo(models.Model):
     )
     username = models.CharField(max_length=100, unique=True)
     password = models.CharField(max_length=100)
-    invcode = models.CharField(max_length=100)
+    invcode = models.CharField(max_length=100, null=True)
     index = models.IntegerField(choices=INDEX_CHOICES, default=2)
-
+    online = models.BooleanField(default=False)
 # 客户信息表
