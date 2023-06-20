@@ -21,10 +21,12 @@ from users import views
 urlpatterns = [
     # path('admin/', admin.site.urls),
 
-
-    #register
+    # register
     path('register/', views.register),
 
+    # login
+    path('login/', views.login),
 
-
+    # logout
+    path('logout/', views.logout)
 ]

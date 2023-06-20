@@ -48,7 +48,12 @@ def login(request):
                 user = AccountInfo.objects.get(username=uname)
                 is_equal = constant_time_compare(user.password, password_hash)
                 if is_equal:
-                    result = {'status': 'success', 'message': '登录成功。'}
+                    if user.online:
+                        result = {'status': 'error', 'message': '用户已登录。', 'now': user.id}
+                    else:
+                        user.online = True
+                        user.save()
+                        result = {'status': 'success', 'message': '登录成功。', 'now': user.id}
                 else:
                     result = {'status': 'error', 'message': '密码错误。'}
             except AccountInfo.DoesNotExist:
@@ -58,4 +63,23 @@ def login(request):
             result = {'status': 'error', 'message': first_error}
     else:
         result = {'status': 'error', 'message': '非法请求'}
+    return JsonResponse(result)
+
+
+@csrf_exempt
+def logout(request):
+    if request.method != 'POST':
+        result = {'status': 'error', 'message': '非法请求。'}
+    else:
+        nid = request.POST.get('nid')
+        try:
+            user = AccountInfo.objects.get(id=nid)
+            if user.online:
+                user.online = False
+                user.save()
+                result = {'status': 'success', 'message': '登出成功。'}
+            else:
+                result = {'status': 'error', 'message': '用户未登录。'}
+        except AccountInfo.DoesNotExist:
+            result = {'status': 'error', 'message': '用户不存在。'}
     return JsonResponse(result)
