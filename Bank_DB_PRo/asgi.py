@@ -1,5 +1,5 @@
 """
-ASGI config for bankDBR project.
+ASGI config for Bank_DB_PRo project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bankDBR.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Bank_DB_PRo.settings')
 
 application = get_asgi_application()
