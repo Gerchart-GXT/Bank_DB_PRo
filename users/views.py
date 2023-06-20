@@ -83,3 +83,20 @@ def logout(request):
         except AccountInfo.DoesNotExist:
             result = {'status': 'error', 'message': '用户不存在。'}
     return JsonResponse(result)
+
+
+@csrf_exempt
+def is_online(request):
+    if request.method != 'POST':
+        result = {'status': 'error', 'message': '非法请求。'}
+    else:
+        nid = request.POST.get('nid')
+        try:
+            user = AccountInfo.objects.get(id=nid)
+            if user.online:
+                result = {'status': 'success', 'message': 'online'}
+            else:
+                result = {'status': 'success', 'message': 'offline'}
+        except AccountInfo.DoesNotExist:
+            result = {'status': 'error', 'message': '用户不存在。'}
+    return JsonResponse(result)

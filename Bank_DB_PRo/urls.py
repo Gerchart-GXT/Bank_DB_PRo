@@ -28,5 +28,10 @@ urlpatterns = [
     path('login/', views.login),
 
     # logout
-    path('logout/', views.logout)
+    path('logout/', views.logout),
+
+    # is_online
+    path('isOnline/', views.is_online),
+
+
 ]
