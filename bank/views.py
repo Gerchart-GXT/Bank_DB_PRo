@@ -30,7 +30,8 @@ def register(request):
             form.save()
             result = {'status': 'success', 'message': '注册成功'}
         else:
-            result = {'status': 'error', 'message': json.dumps(form.errors, ensure_ascii=False)}
+            first_error = list(form.errors.values())[0][0]
+            result = {'status': 'error', 'message': first_error}
     else:
         result = {'status': 'error', 'message': '非法请求'}
     return JsonResponse(result)
@@ -49,11 +50,11 @@ def login(request):
                 is_equal = constant_time_compare(user.password, password_hash)
                 if is_equal:
                     if user.online:
-                        result = {'status': 'error', 'message': '用户已登录。', 'now': user.id}
+                        result = {'status': 'error', 'message': '用户已登录。', 'now': user.account_id}
                     else:
                         user.online = True
                         user.save()
-                        result = {'status': 'success', 'message': '登录成功。', 'now': user.id}
+                        result = {'status': 'success', 'message': '登录成功。', 'now': user.account_id}
                 else:
                     result = {'status': 'error', 'message': '密码错误。'}
             except AccountInfo.DoesNotExist:
@@ -71,9 +72,9 @@ def logout(request):
     if request.method != 'POST':
         result = {'status': 'error', 'message': '非法请求。'}
     else:
-        nid = request.POST.get('nid')
+        nid = request.POST.get('account_id')
         try:
-            user = AccountInfo.objects.get(id=nid)
+            user = AccountInfo.objects.get(account_id=nid)
             if user.online:
                 user.online = False
                 user.save()
@@ -90,9 +91,9 @@ def is_online(request):
     if request.method != 'POST':
         result = {'status': 'error', 'message': '非法请求。'}
     else:
-        nid = request.POST.get('nid')
+        nid = request.POST.get('account_id')
         try:
-            user = AccountInfo.objects.get(id=nid)
+            user = AccountInfo.objects.get(account_id=nid)
             if user.online:
                 result = {'status': 'success', 'message': 'online'}
             else:

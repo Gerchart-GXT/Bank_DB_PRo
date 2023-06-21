@@ -1,6 +1,6 @@
 from django import forms
 import re
-from users.models import AccountInfo
+from bank.models import AccountInfo
 
 
 # 密码验证器
