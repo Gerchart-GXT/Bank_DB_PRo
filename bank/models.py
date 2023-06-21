@@ -72,8 +72,8 @@ class Card(models.Model):
 
 # 借记卡表
 class Debit_card(models.Model):
-    card_id = models.ForeignKey(Card, on_delete=models.CASCADE, null=False, primary_key=True,
-                                verbose_name="借记卡对应卡片id")
+    debit_card_id = models.AutoField(unique=True, primary_key=True, null=False, verbose_name="借记卡id")
+    card_id = models.OneToOneField(Card, on_delete=models.CASCADE, null=False, verbose_name="借记卡对应卡片id")
     card_balance = models.DecimalField(max_digits=18, decimal_places=2, validators=[validate_positive_decimal],
                                        default=0, null=False,
                                        verbose_name="借记卡余额")
@@ -81,8 +81,8 @@ class Debit_card(models.Model):
 
 # 信用卡表
 class Credit_card(models.Model):
-    card_id = models.ForeignKey(Card, on_delete=models.CASCADE, null=False, primary_key=True,
-                                verbose_name="信用卡对应卡片id")
+    credit_card_id = models.AutoField(unique=True, primary_key=True, null=False, verbose_name="信用卡id")
+    card_id = models.OneToOneField(Card, on_delete=models.CASCADE, null=False, verbose_name="信用卡对应卡片id")
     card_balance = models.DecimalField(max_digits=18, decimal_places=2, default=0, null=False,
                                        verbose_name="信用卡余额")
     card_credit_limit = models.DecimalField(max_digits=18, decimal_places=2, validators=[validate_positive_decimal],
@@ -118,21 +118,47 @@ class Currency_project(models.Model):
     )
     project_id = models.AutoField(unique=True, primary_key=True, null=False, verbose_name="项目编号")
     client_id = models.ForeignKey(Client, on_delete=models.CASCADE, null=False, verbose_name="项目所属客户编号")
-    department_id = models.ForeignKey(Department, on_delete=models.CASCADE, null=False, verbose_name="项目所属部门编号")
+    #    department_id = models.ForeignKey(Department, on_delete=models.CASCADE, null=False, verbose_name="项目所属部门编号")
     project_state = models.IntegerField(choices=INDEX_CHOICES, null=False, default=0, verbose_name="项目状态")
 
 
-# 项目——经理关系表
-# class manager_with_currency_project(models.Model):
-#    relation_id = models.AutoField(unique=True, primary_key=True, null=False, verbose_name="关系编号")
+# 基金类型表
+class Fund_type(models.Model):
+    fund_id = models.AutoField(unique=True, primary_key=True, null=False, verbose_name='基金编号')
+    fund_name = models.CharField(max_length=100, null=False, unique=True)
+
+
+# 基金项目表
+class Fund_project(models.Model):
+    fund_project_id = models.AutoField(unique=True, primary_key=True, null=False, verbose_name='基金项目编号')
+    project_id = models.OneToOneField(Currency_project, on_delete=models.CASCADE, null=False, verbose_name="项目编号")
+    fund_type = models.ForeignKey(Fund_type, on_delete=models.CASCADE, null=False)
+    fund_amount = models.DecimalField(max_digits=18, decimal_places=2, null=False,
+                                      validators=[validate_positive_decimal], default=0, verbose_name="基金金额")
+    fund_income = models.DecimalField(max_digits=18, decimal_places=2, null=False,
+                                      validators=[validate_positive_decimal], default=0, verbose_name="基金收益")
+    fund_period = models.DateField(null=False, verbose_name="基金有效期")
+    fund_detail_etc = models.TextField(null=True, default="", verbose_name="额外信息")
+
+
+# 基金——经理关系表
+class manager_with_currency_project(models.Model):
+    manage_relation_id = models.AutoField(unique=True, primary_key=True, null=False, verbose_name="关系编号")
+    fund_id = models.ForeignKey(Fund_type, on_delete=models.CASCADE, null=False, verbose_name="基金编号")
+    manager_id = models.ForeignKey(Manager, on_delete=models.CASCADE, null=False, verbose_name="经理编号")
+
+
+# 项目——客户关系表
+# class client_with_currency_project(models.Model):
+#    client_relation_id = models.AutoField(unique=True, primary_key=True, null=False, verbose_name='关系编号')
 #    project_id = models.ForeignKey(Currency_project, on_delete=models.CASCADE, null=False, verbose_name="项目编号")
-#    manager_id = models.ForeignKey(Manager, on_delete=models.CASCADE, null=False, verbose_name="经理编号")
+#   client_id = models.ForeignKey(Client, on_delete=models.CASCADE, null=False, verbose_name="客户编号")
 
 
 # 保险信息表
 class Insurance_project(models.Model):
-    project_id = models.ForeignKey(Currency_project, on_delete=models.CASCADE, primary_key=True, null=False,
-                                   verbose_name="项目编号")
+    insurance_project_id = models.AutoField(unique=True, primary_key=True, null=False, verbose_name='保险项目编号')
+    project_id = models.OneToOneField(Currency_project, on_delete=models.CASCADE, null=False, verbose_name="项目编号")
     insurance_project_name = models.CharField(max_length=100, null=False, verbose_name="保险名称")
     insurance_policyholder = models.CharField(max_length=20, null=False, validators=[validate_id_number],
                                               verbose_name="投保人身份证号")
@@ -145,29 +171,10 @@ class Insurance_project(models.Model):
     insurance_detail_etc = models.TextField(null=True, default="", verbose_name="额外信息")
 
 
-# 基金信息表
-class Fund_project(models.Model):
-    INDEX_CHOICES = (
-        (1, 'A基金'),
-        (2, 'B基金'),
-        (3, 'C基金'),
-    )
-    project_id = models.ForeignKey(Currency_project, on_delete=models.CASCADE, primary_key=True, null=False,
-                                   verbose_name="项目编号")
-    fund_name = models.CharField(max_length=100, null=False, verbose_name="基金名称")
-    fund_type = models.IntegerField(choices=INDEX_CHOICES, null=False, verbose_name="基金类型")
-    fund_amount = models.DecimalField(max_digits=18, decimal_places=2, null=False,
-                                      validators=[validate_positive_decimal], default=0, verbose_name="基金金额")
-    fund_income = models.DecimalField(max_digits=18, decimal_places=2, null=False,
-                                      validators=[validate_positive_decimal], default=0, verbose_name="基金收益")
-    fund_period = models.DateField(null=False, verbose_name="基金有效期")
-    fund_detail_etc = models.TextField(null=True, default="", verbose_name="额外信息")
-
-
 # 理财信息表
 class Financial_project(models.Model):
-    project_id = models.ForeignKey(Currency_project, on_delete=models.CASCADE, primary_key=True, null=False,
-                                   verbose_name="项目编号")
+    financial_project_id = models.AutoField(unique=True, primary_key=True, null=False, verbose_name='理财项目编号')
+    project_id = models.OneToOneField(Currency_project, on_delete=models.CASCADE, null=False, verbose_name="项目编号")
     financial_project_name = models.CharField(max_length=100, null=False, verbose_name="理财项目名称")
     financial_project_amount = models.DecimalField(max_digits=18, decimal_places=2, null=False,
                                                    validators=[validate_positive_decimal], default=0,
@@ -177,15 +184,3 @@ class Financial_project(models.Model):
                                                    verbose_name="理财项目收益")
     financial_project_period = models.DateField(null=False, verbose_name="理财项目有效期")
     financial_project_detail_etc = models.TextField(null=True, default="", verbose_name="额外信息")
-
-# 数据库改动：
-# 1.增加账号表，客户和经理增加账号id作为外键，经理去除经理密码
-# 2.部门表去除经理工号，经理表加部门编号作为外键
-# 3.三种项目去除自己编号，使用项目编号（外键）作为主键
-# 4.基金类型变为可选（类似项目状态）
-# 5.删除经理——项目关系表，项目表增加经理作为外键
-# 6.删除资产表，项目表增加项目状态
-
-# 可能可以优化的：
-# 1.三种项目额外信息，项目有效期提出放入项目表
-# 2.卡片表增加卡号，卡片校验码的含义？

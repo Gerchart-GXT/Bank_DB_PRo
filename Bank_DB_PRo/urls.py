@@ -19,7 +19,7 @@ from django.urls import path
 from bank import views
 
 urlpatterns = [
-    # path('admin/', admin.site.urls),
+    # ('admin/', admin.site.urls),
 
     # register
     path('register/', views.register),
@@ -33,4 +33,12 @@ urlpatterns = [
     # is_online
     path('isOnline/', views.is_online),
 
+    # change_information
+    path('info/client/write/', views.submit_clientInfo),
+    path('info/manager/write/', views.submit_managerInfo),
+
+    # edit_department
+    path('department/new/', views.new_department),
+    path('department/delete/', views.delete_department),
+    path('department/show/', views.show_department),
 ]

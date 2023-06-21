@@ -1,10 +1,11 @@
-import json
 import hashlib
-from django.http import JsonResponse
+import json
+from django.http import JsonResponse, QueryDict
 from django.utils.crypto import constant_time_compare
 from django.views.decorators.csrf import csrf_exempt
-from .forms import AccountForm, LoginForm
-from .models import AccountInfo
+from .forms import AccountForm, LoginForm, ClientForm, ManagerForm, DepartmentForm
+from .models import AccountInfo, Client, Manager, Department
+from bank import serializers
 
 
 @csrf_exempt
@@ -101,3 +102,102 @@ def is_online(request):
         except AccountInfo.DoesNotExist:
             result = {'status': 'error', 'message': '用户不存在。'}
     return JsonResponse(result)
+
+
+@csrf_exempt
+def submit_clientInfo(request):
+    if request.method == 'POST':
+        form = ClientForm(request.POST)
+        if form.is_valid():
+            nid = request.POST.get('client_account')
+            try:
+                user = Client.objects.get(client_account=nid)
+                user.client_name = form.instance.client_name
+                user.client_idnum = form.instance.client_idnum
+                user.client_phone_number = form.instance.client_phone_number
+                user.client_email_address = form.instance.client_email_address
+                user.save()
+                result = {'status': 'success', 'message': '信息更改成功。'}
+            except Client.DoesNotExist:
+                form.save()
+                result = {'status': 'success', 'message': '信息创建成功。'}
+        else:
+            first_error = list(form.errors.values())[0][0]
+            result = {'status': 'error', 'message': first_error}
+    else:
+        result = {'status': 'error', 'message': '非法请求'}
+    return JsonResponse(result)
+
+
+@csrf_exempt
+def submit_managerInfo(request):
+    if request.method == 'POST':
+        form = ManagerForm(request.POST)
+        if form.is_valid():
+            nid = request.POST.get('manager_account')
+            try:
+                user = Client.objects.get(manager_account=nid)
+                user.manager_name = form.instance.manager_name
+                user.manager_phone_number = form.instance.manager_phone_number
+                user.manager_email_address = form.instance.manager_email_address
+                user.manager_department_id = form.instance.manager_department_id
+                user.save()
+                result = {'status': 'success', 'message': '信息更改成功。'}
+            except Manager.DoesNotExist:
+                form.save()
+                result = {'status': 'success', 'message': '信息创建成功。'}
+        else:
+            first_error = list(form.errors.values())[0][0]
+            result = {'status': 'error', 'message': first_error}
+    else:
+        result = {'status': 'error', 'message': '非法请求'}
+    return JsonResponse(result)
+
+
+@csrf_exempt
+def new_department(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        form = DepartmentForm(data)
+        if form.is_valid():
+            department_name = data.get('department_name')
+            try:
+                department = Department.objects.get(department_name=department_name)
+                result = {'status': 'error', 'message': '已存在该部门。'}
+            except Department.DoesNotExist:
+                form.save()
+                result = {'status': 'success', 'message': '部门创建成功。'}
+        else:
+            first_error = list(form.errors.values())[0][0]
+            result = {'status': 'error', 'message': first_error}
+    else:
+        result = {'status': 'error', 'message': '非法请求'}
+    return JsonResponse(result)
+
+
+@csrf_exempt
+def delete_department(request):
+    if request.method == 'DELETE':
+        data = json.loads(request.body)
+        department_id = data.get('department_id')
+        try:
+            department = Department.objects.get(department_id=department_id)
+            department.delete()
+            result = {'status': 'success', 'message': '部门删除成功。'}
+        except Department.DoesNotExist:
+            result = {'status': 'error', 'message': '部门不存在。'}
+    else:
+        result = {'status': 'error', 'message': '非法请求'}
+    return JsonResponse(result)
+
+
+@csrf_exempt
+def show_department(request):
+    if request.method == 'GET':
+        department_data = Department.objects.all()
+        serializer = serializers.DepartmentSerializer(department_data, many=True)
+        serialized_data = serializer.data
+        return JsonResponse(serialized_data, safe=False)
+    else:
+        result = {'status': 'error', 'message': '非法请求'}
+        return JsonResponse(result)
