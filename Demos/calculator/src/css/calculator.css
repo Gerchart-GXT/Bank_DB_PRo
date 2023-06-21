@@ -1,0 +1,51 @@
+.keyboard {
+    box-sizing: border-box;
+    display: grid;
+    grid-template-rows: minmax(3rem, auto) repeat(4, 3rem);
+    gap: 1px;
+}
+
+.button-line {
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: repeat(4, 7rem);
+    gap: 1px;
+    margin: 0 auto;
+}
+.button-key {
+    box-sizing: border-box;
+    height: 3rem;
+}
+.button-key:hover {
+    height: 3rem;
+    background-color: gainsboro;
+}
+
+.output {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    background-color: gainsboro;
+    width: calc(28rem + 3px);
+    margin: 0 auto;
+    border: 2px solid black;
+}
+
+.AC-key {
+    grid-column: 1 / span 2;
+}
+
+.equal-key {
+    grid-column: 3 / span 2;
+}
+
+.last-output {
+    text-align: end;
+    padding: 0.3rem;
+    font-size: 1.5rem;
+}
+.now-output {
+    text-align: end;
+    font-size: 2.5rem;
+}
