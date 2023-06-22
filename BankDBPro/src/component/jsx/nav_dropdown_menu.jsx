@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
+import CleanLink from '../../component/jsx/clean_link'
 
 class NavDropdownMenu extends Component {
     state = {  } ;
@@ -15,14 +15,14 @@ class NavDropdownMenu extends Component {
             )
         else 
             return (
-                <li key={this.keyInc++}><Link className="dropdown-item" to={item.link}>{item.content}</Link></li>
+                <li key={this.keyInc++}><CleanLink className="dropdown-item" to={item.link}>{item.content}</CleanLink></li>
             )
-    }
+    };
     render() { 
         return (
             <React.Fragment>
                 <div className="nav-item dropdown text-center">
-                    <button className="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button className="nav-link dropdown-toggle"  data-bs-toggle="dropdown" aria-expanded="false">
                         {this.props.title}
                     </button>
                     

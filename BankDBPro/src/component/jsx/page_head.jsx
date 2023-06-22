@@ -22,7 +22,11 @@ class PageHead extends Component {
                         </div>
                         <div className='col-md-8 text-center flex-columm g-3 mb-3'>
                             <h4 className='mb-0 fw-lighter'>
-                                24小时会员专线：400-1234-567
+                                24小时
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-clock-fill mb-1 mx-2" viewBox="0 0 16 16">
+                                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                                </svg>
+                                会员专线：400-1234-567
                             </h4>
                         </div>
                         <div className='row'>
