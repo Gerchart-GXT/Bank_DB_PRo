@@ -1,6 +1,6 @@
 import hashlib
 import json
-from django.http import JsonResponse, QueryDict
+from django.http import JsonResponse
 from django.utils.crypto import constant_time_compare
 from django.views.decorators.csrf import csrf_exempt
 from .forms import AccountForm, LoginForm, ClientForm, ManagerForm, DepartmentForm
@@ -11,7 +11,9 @@ from bank import serializers
 @csrf_exempt
 def register(request):
     if request.method == 'POST':
-        form = AccountForm(request.POST)
+        data = json.loads(request.body)
+        form = AccountForm(data)
+        # form = AccountForm(request.POST)
         # 注册信息通过
         if form.is_valid():
             password = form.cleaned_data['password']
@@ -41,7 +43,9 @@ def register(request):
 @csrf_exempt
 def login(request):
     if request.method == 'POST':
-        form = LoginForm(request.POST)
+        data = json.loads(request.body)
+        form = LoginForm(data)
+        # form = LoginForm(request.POST)
         if form.is_valid():
             uname = form.cleaned_data['username']
             pwd = form.cleaned_data['password']
@@ -73,7 +77,9 @@ def logout(request):
     if request.method != 'POST':
         result = {'status': 'error', 'message': '非法请求。'}
     else:
-        nid = request.POST.get('account_id')
+        data = json.loads(request.body)
+        nid = data.get('account_id')
+        # nid = request.POST.get('account_id')
         try:
             user = AccountInfo.objects.get(account_id=nid)
             if user.online:
@@ -92,7 +98,9 @@ def is_online(request):
     if request.method != 'POST':
         result = {'status': 'error', 'message': '非法请求。'}
     else:
-        nid = request.POST.get('account_id')
+        data = json.loads(request.body)
+        nid = data.get('account_id')
+        # nid = request.POST.get('account_id')
         try:
             user = AccountInfo.objects.get(account_id=nid)
             if user.online:
@@ -105,11 +113,60 @@ def is_online(request):
 
 
 @csrf_exempt
+def delete_account(request):
+    if request.method == 'DELETE':
+        data = json.loads(request.body)
+        nid = data.get('account_id')
+        try:
+            account = AccountInfo.objects.get(account_id=nid)
+            account.delete()
+            result = {'status': 'success', 'message': '账号注销成功。'}
+        except Department.DoesNotExist:
+            result = {'status': 'error', 'message': '账号不存在。'}
+    else:
+        result = {'status': 'error', 'message': '非法请求'}
+    return JsonResponse(result)
+
+
+@csrf_exempt
+def get_account_info(request):
+    if request.method != 'GET':
+        result = {'status': 'error', 'message': '非法请求。'}
+        return JsonResponse(result)
+    else:
+        data = json.loads(request.body)
+        nid = data.get('account_id')
+        try:
+            acc = AccountInfo.objects.get(account_id=nid)
+            serializer = serializers.AccountSerializer(acc)
+            serialized_data = serializer.data
+            result = {'status': 'success', 'account_info': serialized_data}
+            return JsonResponse(result)
+        except AccountInfo.DoesNotExist:
+            result = {'status': 'error', 'message': '账号不存在。'}
+            return JsonResponse(result)
+
+
+@csrf_exempt
+def show_account_list(request):
+    if request.method == 'GET':
+        account_data = AccountInfo.objects.all()
+        serializer = serializers.AccountSerializer(account_data, many=True)
+        serialized_data = serializer.data
+        result = {'status': 'error', 'list': serialized_data}
+        return JsonResponse(result)
+    else:
+        result = {'status': 'error', 'message': '非法请求'}
+        return JsonResponse(result)
+
+
+@csrf_exempt
 def submit_clientInfo(request):
     if request.method == 'POST':
-        form = ClientForm(request.POST)
+        data = json.loads(request.body)
+        form = ClientForm(data)
         if form.is_valid():
-            nid = request.POST.get('client_account')
+            nid = data.get('client_account')
             try:
                 user = Client.objects.get(client_account=nid)
                 user.client_name = form.instance.client_name
@@ -123,6 +180,7 @@ def submit_clientInfo(request):
                 result = {'status': 'success', 'message': '信息创建成功。'}
         else:
             first_error = list(form.errors.values())[0][0]
+            print(form.errors)
             result = {'status': 'error', 'message': first_error}
     else:
         result = {'status': 'error', 'message': '非法请求'}
@@ -130,13 +188,40 @@ def submit_clientInfo(request):
 
 
 @csrf_exempt
+def show_client_list(request):
+    if request.method == 'GET':
+        client_data = Client.objects.all()
+        serializer = serializers.ClientSerializer(client_data, many=True)
+        serialized_data = serializer.data
+        result = {'status': 'success', 'list': serialized_data}
+        return JsonResponse(result)
+    else:
+        result = {'status': 'error', 'message': '非法请求'}
+        return JsonResponse(result)
+
+
+@csrf_exempt
+def show_manager_list(request):
+    if request.method == 'GET':
+        manager_data = Manager.objects.all()
+        serializer = serializers.ManagerSerializer(manager_data, many=True)
+        serialized_data = serializer.data
+        result = {'status': 'success', 'list': serialized_data}
+        return JsonResponse(result)
+    else:
+        result = {'status': 'error', 'message': '非法请求'}
+        return JsonResponse(result)
+
+
+@csrf_exempt
 def submit_managerInfo(request):
     if request.method == 'POST':
-        form = ManagerForm(request.POST)
+        data = json.loads(request.body)
+        form = ManagerForm(data)
         if form.is_valid():
-            nid = request.POST.get('manager_account')
+            nid = data.get('manager_account')
             try:
-                user = Client.objects.get(manager_account=nid)
+                user = Manager.objects.get(manager_account=nid)
                 user.manager_name = form.instance.manager_name
                 user.manager_phone_number = form.instance.manager_phone_number
                 user.manager_email_address = form.instance.manager_email_address
@@ -192,12 +277,13 @@ def delete_department(request):
 
 
 @csrf_exempt
-def show_department(request):
+def show_department_list(request):
     if request.method == 'GET':
         department_data = Department.objects.all()
         serializer = serializers.DepartmentSerializer(department_data, many=True)
         serialized_data = serializer.data
-        return JsonResponse(serialized_data, safe=False)
+        result = {'status': 'success', 'list': serialized_data}
+        return JsonResponse(result)
     else:
         result = {'status': 'error', 'message': '非法请求'}
         return JsonResponse(result)

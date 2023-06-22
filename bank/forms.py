@@ -62,6 +62,9 @@ class ClientForm(forms.ModelForm):
     client_email_address = forms.CharField(error_messages={
         'required': '请输入邮箱。',
     })
+    client_account = forms.ModelChoiceField(queryset=AccountInfo.objects.all(), error_messages={
+        'required': '未定位到账号'
+    })
 
     class Meta:
         model = Client
@@ -79,8 +82,11 @@ class ManagerForm(forms.ModelForm):
     manager_email_address = forms.CharField(error_messages={
         'required': '请输入电子邮箱。',
     })
-    manager_department_id = forms.IntegerField(error_messages={
+    manager_department_id = forms.ModelChoiceField(queryset=Department.objects.all(), error_messages={
         'required': '请选择部门。',
+    })
+    manager_account = forms.ModelChoiceField(queryset=AccountInfo.objects.all(), error_messages={
+        'required': '未定位到账号'
     })
 
     class Meta:

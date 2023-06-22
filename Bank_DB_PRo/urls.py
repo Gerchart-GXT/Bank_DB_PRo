@@ -33,6 +33,15 @@ urlpatterns = [
     # is_online
     path('isOnline/', views.is_online),
 
+    # account_delete
+    path('account/delete/', views.delete_account),
+
+    # get_account_info
+    path('info/account/get/', views.get_account_info),
+    path('account/list/', views.show_account_list),
+    path('client/list/', views.show_client_list),
+    path('manager/list/', views.show_manager_list),
+
     # change_information
     path('info/client/write/', views.submit_clientInfo),
     path('info/manager/write/', views.submit_managerInfo),
@@ -40,5 +49,5 @@ urlpatterns = [
     # edit_department
     path('department/new/', views.new_department),
     path('department/delete/', views.delete_department),
-    path('department/show/', views.show_department),
+    path('department/list/', views.show_department_list),
 ]
