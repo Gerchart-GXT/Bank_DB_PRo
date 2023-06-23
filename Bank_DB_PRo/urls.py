@@ -31,7 +31,7 @@ urlpatterns = [
     path('logout/', views.logout),
 
     # is_online
-    path('isOnline/', views.is_online),
+    path('login_status_check/', views.is_online),
 
     # account_delete
     path('account/delete/', views.delete_account),
@@ -50,4 +50,11 @@ urlpatterns = [
     path('department/new/', views.new_department),
     path('department/delete/', views.delete_department),
     path('department/list/', views.show_department_list),
+
+    # card
+    path('debit_card/create/', views.create_debit_card),
+    path('credit_card/create/', views.create_credit_card),
+
+    path('credit_card/list/client/', views.client_credit_card_list),
+    path('debit_card/list/client/', views.client_debit_card_list),
 ]

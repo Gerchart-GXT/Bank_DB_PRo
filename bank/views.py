@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.utils.crypto import constant_time_compare
 from django.views.decorators.csrf import csrf_exempt
 from .forms import AccountForm, LoginForm, ClientForm, ManagerForm, DepartmentForm
-from .models import AccountInfo, Client, Manager, Department
+from .models import AccountInfo, Client, Manager, Department, Cookie, Card, Credit_card, Debit_card
 from bank import serializers
 
 
@@ -55,11 +55,18 @@ def login(request):
                 is_equal = constant_time_compare(user.password, password_hash)
                 if is_equal:
                     if user.online:
-                        result = {'status': 'error', 'message': '用户已登录。', 'now': user.account_id}
+                        result = {'status': 'error', 'message': '用户已登录。'}
                     else:
+                        cookie = Cookie.create()
+                        cookie.account_id = user
+                        cookie.save()
+                        cookie_data = {
+                            'value': cookie.cookie,
+                            'expires': cookie.expiration,
+                        }
                         user.online = True
                         user.save()
-                        result = {'status': 'success', 'message': '登录成功。', 'now': user.account_id}
+                        result = {'status': 'success', 'message': '登录成功。', 'cookie': cookie_data}
                 else:
                     result = {'status': 'error', 'message': '密码错误。'}
             except AccountInfo.DoesNotExist:
@@ -77,38 +84,36 @@ def logout(request):
     if request.method != 'POST':
         result = {'status': 'error', 'message': '非法请求。'}
     else:
-        data = json.loads(request.body)
-        nid = data.get('account_id')
-        # nid = request.POST.get('account_id')
+        # data = json.loads(request.body)
+        # nid = data.get('account_id')
+        cookie = request.GET.get('cookieValue')
         try:
-            user = AccountInfo.objects.get(account_id=nid)
-            if user.online:
-                user.online = False
-                user.save()
-                result = {'status': 'success', 'message': '登出成功。'}
-            else:
-                result = {'status': 'error', 'message': '用户未登录。'}
-        except AccountInfo.DoesNotExist:
-            result = {'status': 'error', 'message': '用户不存在。'}
+            cookie = Cookie.objects.get(cookie=cookie)
+            user = AccountInfo.objects.get(account_id=cookie.account_id.account_id)
+            user.online = False
+            user.save()
+            cookie.delete()
+            result = {'status': 'success', 'message': '登出成功。'}
+        except Cookie.DoesNotExist:
+            result = {'status': 'error', 'message': '用户未登录。'}
     return JsonResponse(result)
 
 
 @csrf_exempt
 def is_online(request):
-    if request.method != 'POST':
+    if request.method != 'GET':
         result = {'status': 'error', 'message': '非法请求。'}
     else:
-        data = json.loads(request.body)
-        nid = data.get('account_id')
-        # nid = request.POST.get('account_id')
+        # data = json.loads(request.body)
+        # cookie = data.get('cookieValue')
+        cookie = request.GET.get('cookieValue')
         try:
+            cookie = Cookie.objects.get(cookie=cookie)
+            nid = cookie.account_id.account_id
             user = AccountInfo.objects.get(account_id=nid)
-            if user.online:
-                result = {'status': 'success', 'message': 'online'}
-            else:
-                result = {'status': 'success', 'message': 'offline'}
-        except AccountInfo.DoesNotExist:
-            result = {'status': 'error', 'message': '用户不存在。'}
+            result = {'status': 'success', 'username': user.username}
+        except Cookie.DoesNotExist:
+            result = {'status': 'error', 'message': '用户未登录。'}
     return JsonResponse(result)
 
 
@@ -180,7 +185,6 @@ def submit_clientInfo(request):
                 result = {'status': 'success', 'message': '信息创建成功。'}
         else:
             first_error = list(form.errors.values())[0][0]
-            print(form.errors)
             result = {'status': 'error', 'message': first_error}
     else:
         result = {'status': 'error', 'message': '非法请求'}
@@ -284,6 +288,109 @@ def show_department_list(request):
         serialized_data = serializer.data
         result = {'status': 'success', 'list': serialized_data}
         return JsonResponse(result)
+    else:
+        result = {'status': 'error', 'message': '非法请求'}
+        return JsonResponse(result)
+
+
+@csrf_exempt
+def create_debit_card(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        cookie = data.get('cookieValue')
+        password = data.get('password')
+        try:
+            ck = Cookie.objects.get(cookie=cookie)
+            usr = AccountInfo.objects.get(account_id=ck.account_id.account_id)
+            client = Client.objects.get(client_account=usr.account_id)
+            card = Card.create()
+            card.card_password = password
+            card.client_id = client
+            card.save()
+            debit_card = Debit_card.objects.create(card_id=card)
+            debit_card.save()
+            card_data = {
+                'card_id': card.card_id,
+                'debit_card_id': debit_card.debit_card_id,
+                'card_check_code': card.card_check_code,
+                'client_id': client.client_id,
+                'account_id': usr.account_id,
+            }
+            result = {'status': 'success', 'message': '创建成功', 'card_data': card_data}
+        except Cookie.DoesNotExist:
+            result = {'status': 'error', 'message': '账号异常'}
+    else:
+        result = {'status': 'error', 'message': '非法请求'}
+    return JsonResponse(result)
+
+
+@csrf_exempt
+def create_credit_card(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        cookie = data.get('cookieValue')
+        password = data.get('password')
+        try:
+            ck = Cookie.objects.get(cookie=cookie)
+            usr = AccountInfo.objects.get(account_id=ck.account_id.account_id)
+            client = Client.objects.get(client_account=usr.account_id)
+            card = Card.create()
+            card.card_password = password
+            card.client_id = client
+            card.save()
+            credit_card = Credit_card.objects.create(card_id=card)
+            credit_card.card_credit_limit = 5000.00
+            credit_card.save()
+            card_data = {
+                'card_id': card.card_id,
+                'credit_card_id': credit_card.credit_card_id,
+                'card_check_code': card.card_check_code,
+                'client_id': client.client_id,
+                'account_id': usr.account_id,
+            }
+            result = {'status': 'success', 'message': '创建成功', 'card_data': card_data}
+        except Cookie.DoesNotExist:
+            result = {'status': 'error', 'message': '账号异常'}
+    else:
+        result = {'status': 'error', 'message': '非法请求'}
+    return JsonResponse(result)
+
+
+@csrf_exempt
+def client_credit_card_list(request):
+    if request.method == 'GET':
+        cookie = request.GET.get('cookieValue')
+        try:
+            ck = Cookie.objects.get(cookie=cookie)
+            client = Client.objects.get(client_account=ck.account_id)
+            card_data = Credit_card.objects.select_related('card_id').filter(card_id__client_id=client.client_id)
+            serializer = serializers.CreditCardSerializer(card_data, many=True)
+            serialized_data = serializer.data
+            result = {'status': 'success', 'list': serialized_data}
+            return JsonResponse(result)
+        except Cookie.DoesNotExist:
+            result = {'status': 'error', 'message': '账号异常'}
+            return JsonResponse(result)
+    else:
+        result = {'status': 'error', 'message': '非法请求'}
+        return JsonResponse(result)
+
+
+@csrf_exempt
+def client_debit_card_list(request):
+    if request.method == 'GET':
+        cookie = request.GET.get('cookieValue')
+        try:
+            ck = Cookie.objects.get(cookie=cookie)
+            client = Client.objects.get(client_account=ck.account_id)
+            card_data = Debit_card.objects.select_related('card_id').filter(card_id__client_id=client.client_id)
+            serializer = serializers.DebitCardSerializer(card_data, many=True)
+            serialized_data = serializer.data
+            result = {'status': 'success', 'list': serialized_data}
+            return JsonResponse(result)
+        except Cookie.DoesNotExist:
+            result = {'status': 'error', 'message': '账号异常'}
+            return JsonResponse(result)
     else:
         result = {'status': 'error', 'message': '非法请求'}
         return JsonResponse(result)

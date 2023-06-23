@@ -1,6 +1,9 @@
 from django.db import models
 from django.core import validators
 import re
+import string
+import secrets
+from datetime import datetime, timedelta
 
 
 # 身份证号校验
@@ -33,6 +36,21 @@ def validate_positive_decimal(value):
         raise validators.ValidationError("值必须大于0")
 
 
+# 生成cookie
+def generate_cookie():
+    # 生成7位的随机英文字母和数字字符串
+    characters = string.ascii_letters + string.digits
+    cookie = ''.join(secrets.choice(characters) for _ in range(64))
+    return cookie
+
+
+def generate_card_check_code():
+    # 生成64位的随机英文字母和数字字符串
+    characters = string.ascii_letters + string.digits
+    check_code = ''.join(secrets.choice(characters) for _ in range(7))
+    return check_code
+
+
 # 账号信息表
 class AccountInfo(models.Model):
     INDEX_CHOICES = (
@@ -46,6 +64,23 @@ class AccountInfo(models.Model):
     invcode = models.CharField(max_length=100, null=True, verbose_name="邀请码")
     index = models.IntegerField(choices=INDEX_CHOICES, default=2, null=False, verbose_name="账户类型")
     online = models.BooleanField(default=False, null=False, verbose_name="是否在线")
+
+
+# cookie
+class Cookie(models.Model):
+    account_id = models.OneToOneField(AccountInfo, on_delete=models.CASCADE, null=False, verbose_name="账户编号")
+    cookie = models.CharField(max_length=64, null=True, verbose_name="cookie验证码")
+    expiration = models.DateTimeField(auto_now_add=True)
+
+    @classmethod
+    def create(cls):
+        # 创建一个新的Cookie对象
+        cookie = cls(cookie=generate_cookie())
+
+        # 设置Cookie的过期时间为当前时间加上300秒（300000毫秒）
+        cookie.expiration = datetime.now() + timedelta(milliseconds=300000)
+
+        return cookie
 
 
 # 客户信息表
@@ -68,6 +103,12 @@ class Card(models.Model):
     card_check_code = models.CharField(max_length=20, null=False, verbose_name="卡片校验码")
     card_password = models.CharField(max_length=20, null=False, verbose_name="卡片密码")
     client_id = models.ForeignKey(Client, on_delete=models.CASCADE, null=False, verbose_name="所属客户编号")
+
+    @classmethod
+    def create(cls):
+        card = cls(card_check_code=generate_card_check_code())
+        card.card_valid_thru = datetime.now() + timedelta(minutes=60*24*365)
+        return card
 
 
 # 借记卡表
