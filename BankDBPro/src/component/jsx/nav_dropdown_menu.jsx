@@ -4,7 +4,7 @@ import CleanLink from '../../component/jsx/clean_link'
 class NavDropdownMenu extends Component {
     state = {  } ;
     keyInc = 1;
-    fillItems(item) {
+    fillItems = (item) => {
         if(item.type === "header")
             return (
                 <li key={this.keyInc++}><h6 className="dropdown-header">{item.content}</h6></li>

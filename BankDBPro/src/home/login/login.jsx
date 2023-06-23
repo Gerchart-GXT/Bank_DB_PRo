@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import $ from 'jquery';
+import ACTIONS from '../../component/redux/action';
+import { connect } from 'react-redux';
 class Login extends Component {
     state = { 
         userName: "",
@@ -19,20 +21,22 @@ class Login extends Component {
             }
         }
     };
-    registerSubmit = (e) => {
+    loginSubmit = (e) => {
         e.preventDefault();
-        console.log(this.state);
         $.ajax({
-            url: "http://127.0.0.1:4523/m2/2915088-0-default/90640682",
+            url: "",
             type: "post",
             data: {
-                username: this.state.userName,
+                userName: this.state.userName,
                 password: this.state.passWord,
             },
             dataType: "json",
             success: response => {
-                console.log(response);
                 if(response.status === "success") {
+                    this.props.login(response.cookie, {
+                        userName: this.state.userName,
+                        passWord: this.state.passWord
+                    });
                     window.location.href="/";
                 } else {
                     this.setState({
@@ -59,7 +63,7 @@ class Login extends Component {
                             <h6 className="card-text">理财可以让我们实现财务自由</h6>
                             <h6 className="card-text">理财可以满足对理财世界的好奇</h6>
                             <h6 className="card-text">理财是为了规划未来的生活</h6>
-                            <a className="btn btn-primary disabled">注册吧，你的<span className='text-warning'>"财富之路"</span></a>
+                            <div className="btn btn-primary disabled">注册吧，你的<span className='text-warning'>"财富之路"</span></div>
                         </div>
                     </div>
                     <div className='col-md-8 text-center m-auto'>
@@ -95,7 +99,7 @@ class Login extends Component {
                                 {this.state.erroMessageSubmit}
                             </div>
                             <div className="text-center">
-                                <button onClick={e => this.registerSubmit(e)} className="btn btn-primary disabled mx-2" id="submitBotton">登录</button>
+                                <button onClick={e => this.loginSubmit(e)} className="btn btn-primary disabled mx-2" id="submitBotton">登录</button>
                                 <button className="btn btn-warning mx-2 disabled" >忘记密码</button>
                             </div>
                         </form>
@@ -105,5 +109,15 @@ class Login extends Component {
         );
     }
 }
+
+const mapDispatchToProps = {
+    login: (cookie, userInfo) => {
+        return {
+            type: ACTIONS.LOGIN,
+            cookie: cookie, 
+            userInfo: userInfo
+        }
+    }
+}
  
-export default Login;
+export default connect(null, mapDispatchToProps)(Login);

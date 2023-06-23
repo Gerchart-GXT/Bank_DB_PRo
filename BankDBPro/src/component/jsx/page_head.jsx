@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import CleanLink from './clean_link';
+import HandleLoginRegister from './handle_login_resigter';
 class PageHead extends Component {
     state = {  } 
     render() { 
@@ -39,12 +40,7 @@ class PageHead extends Component {
                                     </button>
                             </form>
                             <form className="col-md-2 d-flex justify-content-center g-1">
-                                <button className="btn btn-sm btn-outline-success mx-2" type="button">
-                                    <CleanLink to="/login">登录</CleanLink>
-                                </button>
-                                <button className="btn btn-sm btn-outline-success mx-2" type="button">
-                                    <CleanLink to="/register">注册</CleanLink>
-                                </button>
+                                <HandleLoginRegister></HandleLoginRegister>
                             </form>
                         </div>
                     </div>
