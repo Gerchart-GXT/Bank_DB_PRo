@@ -1,6 +1,6 @@
 from django import forms
 import re
-from bank.models import AccountInfo, Client, Manager, Department
+from bank.models import AccountInfo, Client, Manager, Department, Fund_type, Financial_type, Insurance_type
 
 
 # 密码验证器
@@ -62,13 +62,13 @@ class ClientForm(forms.ModelForm):
     client_email_address = forms.CharField(error_messages={
         'required': '请输入邮箱。',
     })
-    client_account = forms.ModelChoiceField(queryset=AccountInfo.objects.all(), error_messages={
+    username = forms.ModelChoiceField(queryset=AccountInfo.objects.all(), to_field_name='username', error_messages={
         'required': '未定位到账号'
     })
 
     class Meta:
         model = Client
-        fields = ['client_name', 'client_idnum', 'client_phone_number', 'client_email_address', 'client_account']
+        fields = ['client_name', 'client_idnum', 'client_phone_number', 'client_email_address', 'username']
 
 
 # 经理信息表单
@@ -85,14 +85,14 @@ class ManagerForm(forms.ModelForm):
     manager_department_id = forms.ModelChoiceField(queryset=Department.objects.all(), error_messages={
         'required': '请选择部门。',
     })
-    manager_account = forms.ModelChoiceField(queryset=AccountInfo.objects.all(), error_messages={
+    username = forms.ModelChoiceField(queryset=AccountInfo.objects.all(), to_field_name='username', error_messages={
         'required': '未定位到账号'
     })
 
     class Meta:
         model = Manager
         fields = ['manager_name', 'manager_phone_number', 'manager_email_address', 'manager_department_id',
-                  'manager_account']
+                  'username']
 
 
 # 部门表单
@@ -105,3 +105,35 @@ class DepartmentForm(forms.ModelForm):
         model = Department
         fields = ['department_name']
 
+
+# 基金表单
+class FundForm(forms.ModelForm):
+    fund_name = forms.CharField(error_messages={
+        'required': '请输入基金名称'
+    })
+
+    class Meta:
+        model = Fund_type
+        fields = ['fund_name']
+
+
+# 保险表单
+class InsuranceForm(forms.ModelForm):
+    insurance_name = forms.CharField(error_messages={
+        'required': '请输入保险名称'
+    })
+
+    class Meta:
+        model = Insurance_type
+        fields = ['insurance_name']
+
+
+# 理财表单
+class FinancialForm(forms.ModelForm):
+    financial_name = forms.CharField(error_messages={
+        'required': '请输入理财项目名称'
+    })
+
+    class Meta:
+        model = Financial_type
+        fields = ['financial_name']

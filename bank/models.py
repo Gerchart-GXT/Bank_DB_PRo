@@ -107,7 +107,7 @@ class Card(models.Model):
     @classmethod
     def create(cls):
         card = cls(card_check_code=generate_card_check_code())
-        card.card_valid_thru = datetime.now() + timedelta(minutes=60*24*365)
+        card.card_valid_thru = datetime.now() + timedelta(minutes=60 * 24 * 365)
         return card
 
 
@@ -131,6 +131,22 @@ class Credit_card(models.Model):
                                             verbose_name="信用卡额度")
 
 
+class Financial_type(models.Model):
+    financial_id = models.AutoField(unique=True, primary_key=True, null=False, verbose_name='理财项目编号')
+    financial_name = models.CharField(max_length=100, null=False, unique=True)
+
+
+class Insurance_type(models.Model):
+    insurance_id = models.AutoField(unique=True, primary_key=True, null=False, verbose_name='保险编号')
+    insurance_name = models.CharField(max_length=100, null=False, unique=True)
+
+
+# 基金类型表
+class Fund_type(models.Model):
+    fund_id = models.AutoField(unique=True, primary_key=True, null=False, verbose_name='基金编号')
+    fund_name = models.CharField(max_length=100, null=False, unique=True)
+
+
 # 部门表
 class Department(models.Model):
     department_id = models.AutoField(unique=True, primary_key=True, null=False, verbose_name="部门编号")
@@ -148,6 +164,9 @@ class Manager(models.Model):
     manager_account = models.ForeignKey(AccountInfo, on_delete=models.CASCADE, null=False, verbose_name="经理账号")
     manager_department_id = models.ForeignKey(Department, on_delete=models.CASCADE, null=False,
                                               verbose_name="经理所属部门id")
+    insurance = models.ManyToManyField(Insurance_type, through='manager_with_insurance')
+    financial = models.ManyToManyField(Financial_type, through='manager_with_financial')
+    fund = models.ManyToManyField(Fund_type, through="manager_with_fund")
 
 
 # 项目表
@@ -161,12 +180,6 @@ class Currency_project(models.Model):
     client_id = models.ForeignKey(Client, on_delete=models.CASCADE, null=False, verbose_name="项目所属客户编号")
     #    department_id = models.ForeignKey(Department, on_delete=models.CASCADE, null=False, verbose_name="项目所属部门编号")
     project_state = models.IntegerField(choices=INDEX_CHOICES, null=False, default=0, verbose_name="项目状态")
-
-
-# 基金类型表
-class Fund_type(models.Model):
-    fund_id = models.AutoField(unique=True, primary_key=True, null=False, verbose_name='基金编号')
-    fund_name = models.CharField(max_length=100, null=False, unique=True)
 
 
 # 基金项目表
@@ -183,7 +196,7 @@ class Fund_project(models.Model):
 
 
 # 基金——经理关系表
-class manager_with_currency_project(models.Model):
+class manager_with_fund(models.Model):
     manage_relation_id = models.AutoField(unique=True, primary_key=True, null=False, verbose_name="关系编号")
     fund_id = models.ForeignKey(Fund_type, on_delete=models.CASCADE, null=False, verbose_name="基金编号")
     manager_id = models.ForeignKey(Manager, on_delete=models.CASCADE, null=False, verbose_name="经理编号")
@@ -200,10 +213,10 @@ class manager_with_currency_project(models.Model):
 class Insurance_project(models.Model):
     insurance_project_id = models.AutoField(unique=True, primary_key=True, null=False, verbose_name='保险项目编号')
     project_id = models.OneToOneField(Currency_project, on_delete=models.CASCADE, null=False, verbose_name="项目编号")
-    insurance_project_name = models.CharField(max_length=100, null=False, verbose_name="保险名称")
+    insurance_type = models.ForeignKey(Insurance_type, on_delete=models.CASCADE, null=False)
     insurance_policyholder = models.CharField(max_length=20, null=False, validators=[validate_id_number],
                                               verbose_name="投保人身份证号")
-    insurance_insured = models.CharField(max_length=20, null=False, validators=[validate_id_number],
+    insurance_insured = models.CharField(max_length=20, validators=[validate_id_number],
                                          verbose_name="被保人身份证号")
     insurance_amount = models.DecimalField(max_digits=18, decimal_places=2, validators=[validate_positive_decimal],
                                            null=False, default=0,
@@ -212,11 +225,23 @@ class Insurance_project(models.Model):
     insurance_detail_etc = models.TextField(null=True, default="", verbose_name="额外信息")
 
 
+class manager_with_insurance(models.Model):
+    manage_relation_id = models.AutoField(unique=True, primary_key=True, null=False, verbose_name="关系编号")
+    insurance_id = models.ForeignKey(Insurance_type, on_delete=models.CASCADE, null=False, verbose_name="保险编号")
+    manager_id = models.ForeignKey(Manager, on_delete=models.CASCADE, null=False, verbose_name="经理编号")
+
+
+class manager_with_financial(models.Model):
+    manage_relation_id = models.AutoField(unique=True, primary_key=True, null=False, verbose_name="关系编号")
+    financial_id = models.ForeignKey(Financial_type, on_delete=models.CASCADE, null=False, verbose_name="理财产品编号")
+    manager_id = models.ForeignKey(Manager, on_delete=models.CASCADE, null=False, verbose_name="经理编号")
+
+
 # 理财信息表
 class Financial_project(models.Model):
     financial_project_id = models.AutoField(unique=True, primary_key=True, null=False, verbose_name='理财项目编号')
     project_id = models.OneToOneField(Currency_project, on_delete=models.CASCADE, null=False, verbose_name="项目编号")
-    financial_project_name = models.CharField(max_length=100, null=False, verbose_name="理财项目名称")
+    financial_type = models.ForeignKey(Financial_type, on_delete=models.CASCADE, null=False)
     financial_project_amount = models.DecimalField(max_digits=18, decimal_places=2, null=False,
                                                    validators=[validate_positive_decimal], default=0,
                                                    verbose_name="理财项目金额")
