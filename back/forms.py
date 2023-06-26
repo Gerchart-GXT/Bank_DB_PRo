@@ -1,6 +1,6 @@
 from django import forms
 import re
-from bank.models import AccountInfo
+from bank.models import AccountInfo, Client, Manager, Department, Fund_type, Financial_type, Insurance_type
 
 
 # 密码验证器
@@ -46,3 +46,94 @@ class LoginForm(forms.Form):
     password = forms.CharField(error_messages={
         'required': '请输入密码。'
     })
+
+
+# 客户信息表单
+class ClientForm(forms.ModelForm):
+    client_name = forms.CharField(error_messages={
+        'required': '请输入姓名。',
+    })
+    client_idnum = forms.CharField(error_messages={
+        'required': '请输入身份证号。',
+    })
+    client_phone_number = forms.CharField(error_messages={
+        'required': '请输入手机号。',
+    })
+    client_email_address = forms.CharField(error_messages={
+        'required': '请输入邮箱。',
+    })
+    username = forms.ModelChoiceField(queryset=AccountInfo.objects.all(), to_field_name='username', error_messages={
+        'required': '未定位到账号'
+    })
+
+    class Meta:
+        model = Client
+        fields = ['client_name', 'client_idnum', 'client_phone_number', 'client_email_address', 'username']
+
+
+# 经理信息表单
+class ManagerForm(forms.ModelForm):
+    manager_name = forms.CharField(error_messages={
+        'required': '请输入姓名。',
+    })
+    manager_phone_number = forms.CharField(error_messages={
+        'required': '请输入手机号。',
+    })
+    manager_email_address = forms.CharField(error_messages={
+        'required': '请输入电子邮箱。',
+    })
+    manager_department_id = forms.ModelChoiceField(queryset=Department.objects.all(), error_messages={
+        'required': '请选择部门。',
+    })
+    username = forms.ModelChoiceField(queryset=AccountInfo.objects.all(), to_field_name='username', error_messages={
+        'required': '未定位到账号'
+    })
+
+    class Meta:
+        model = Manager
+        fields = ['manager_name', 'manager_phone_number', 'manager_email_address', 'manager_department_id',
+                  'username']
+
+
+# 部门表单
+class DepartmentForm(forms.ModelForm):
+    department_name = forms.CharField(error_messages={
+        'required': '请输入部门名称'
+    })
+
+    class Meta:
+        model = Department
+        fields = ['department_name']
+
+
+# 基金表单
+class FundForm(forms.ModelForm):
+    fund_name = forms.CharField(error_messages={
+        'required': '请输入基金名称'
+    })
+
+    class Meta:
+        model = Fund_type
+        fields = ['fund_name']
+
+
+# 保险表单
+class InsuranceForm(forms.ModelForm):
+    insurance_name = forms.CharField(error_messages={
+        'required': '请输入保险名称'
+    })
+
+    class Meta:
+        model = Insurance_type
+        fields = ['insurance_name']
+
+
+# 理财表单
+class FinancialForm(forms.ModelForm):
+    financial_name = forms.CharField(error_messages={
+        'required': '请输入理财项目名称'
+    })
+
+    class Meta:
+        model = Financial_type
+        fields = ['financial_name']
