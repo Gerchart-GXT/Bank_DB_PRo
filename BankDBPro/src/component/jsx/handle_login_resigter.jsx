@@ -2,20 +2,21 @@ import React, { Component } from 'react';
 import ACTIONS from '../redux/action';
 import CleanLink from './clean_link';
 import { connect } from 'react-redux';
-import $ from 'jquery'
+import $ from 'jquery';
+import {APIHOST, APIPATH} from "./APIS"
 class HandleLoginRegister extends Component {
     handleLogOut = () => {
         $.ajax({
-            url: "",
+            url: `${APIHOST}${APIPATH.logout}`,
             type: "post",
-            data: {
-                cookie: this.props.cookie,
-                userInfo: this.props.userInfo
-            },
+            data: JSON.stringify({
+                cookieValue: this.props.cookie.value
+            }),
             dataType: "json",
             success: response => {
                 if(response.status === "success") {
                     this.props.logout();
+                    window.location.href="/";
                 } else {
                     console.log(response.status);
                 }
@@ -28,7 +29,7 @@ class HandleLoginRegister extends Component {
             return (
                 <React.Fragment>
                     <button className="btn btn-sm btn-outline-success mx-2" type="button">
-                        <CleanLink to="/my">{this.props.userInfo.userName}</CleanLink>
+                        <CleanLink to="/my/user-info">{this.props.userInfo.userName}</CleanLink>
                     </button>
                     <button onClick={this.handleLogOut} className="btn btn-sm btn-outline-success mx-2" type="button">
                         <CleanLink to="/">登出</CleanLink>
@@ -50,17 +51,18 @@ class HandleLoginRegister extends Component {
     };
     checkLoginState = () => {
         $.ajax({
-            url: "",
+            url: `${APIHOST}${APIPATH.checkLoginState}`,
             type: "post",
-            data: {
-                cookie: this.props.cookie.value
-            },
+            data: JSON.stringify({
+                cookieValue: this.props.cookie.value
+            }),
             dataType: "json",
             success: response => {
                 if(response.status === "success"){
                     this.props.recoveryLogin({
-                        userName: response.userName,
-                        passWord: ""
+                        userName: response.username,
+                        passWord: "",
+                        userType: response.usertype
                     });
                 } else {
                     this.props.deleCookie();
@@ -68,14 +70,32 @@ class HandleLoginRegister extends Component {
             }
         })
     }
-    render() { 
+
+    componentDidUpdate(){
         if(this.props.hasCookie === false && localStorage.getItem("cookieValue") && localStorage.getItem("cookieExpires")){
             this.props.recoveryCookie({
                 value: localStorage.getItem("cookieValue"),
                 expires: localStorage.getItem("cookieExpires")
             });
         }
-        this.checkLoginState();
+        if(this.props.loginStatus === false && this.props.hasCookie === false){
+            this.checkLoginState();
+        }
+    }
+
+    componentDidMount() {
+        if(this.props.hasCookie === false && localStorage.getItem("cookieValue") && localStorage.getItem("cookieExpires")){
+            this.props.recoveryCookie({
+                value: localStorage.getItem("cookieValue"),
+                expires: localStorage.getItem("cookieExpires")
+            });
+        }
+        if(this.props.loginStatus === false){
+            this.checkLoginState();
+        }
+    }
+
+    render() { 
         return (
             <React.Fragment>
                 {this.rendForLoginRegister()}

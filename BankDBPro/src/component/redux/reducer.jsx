@@ -10,6 +10,7 @@ const reducer = (
         userInfo: {
             userName: "",
             passWord: "",
+            userType: ""
         }
     },
     action

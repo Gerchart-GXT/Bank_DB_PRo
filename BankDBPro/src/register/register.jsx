@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import $ from "jquery"
+import {APIHOST, APIPATH } from '../component/jsx/APIS';
 
 class Register extends Component {
     state = { 
@@ -27,7 +28,7 @@ class Register extends Component {
     };
 
     async checkUserNameLegal(input){
-        await this.setState({
+        this.setState({
             userName: input
         });
         let firstNotNumReg = /[0-9]/, legalReg = /[0-9a-zA-Z]*/;
@@ -104,18 +105,16 @@ class Register extends Component {
     }
     registerSubmit = (e) => {
         e.preventDefault();
-        console.log(this.state);
         $.ajax({
-            url: "http://127.0.0.1:4523/m2/2915088-0-default/90640514",
+            url: `${APIHOST}${APIPATH.reigster}`,
             type: "post",
-            data: {
+            data: JSON.stringify({
                 username: this.state.userName,
                 password: this.state.passWord,
                 invcode: this.state.authorizationCode
-            },
+            }),
             dataType: "json",
             success: response => {
-                console.log(response);
                 if(response.status === "success") {
                     window.location.href="/";
                 } else {
@@ -123,8 +122,8 @@ class Register extends Component {
                         erroMessageSubmit: response.message
                     })
                 }
-            }
-        })
+            },
+        });
     }
     render() { 
         return (

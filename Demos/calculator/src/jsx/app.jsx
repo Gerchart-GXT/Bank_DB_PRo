@@ -13,26 +13,6 @@ class App extends Component {
         isLogin: true,
         userName: ""
     };
-    componentDidMount() {
-        // $.ajax({
-        //     url: "https://app165.acapp.acwing.com.cn/calculator/get_status/",
-        //     type : "get",
-        //     success: resp => {
-        //         console.log(resp);
-        //         if(resp.result === "login"){
-        //             this.setState({
-        //                 isLogin: true,
-        //                 userName: resp.username
-        //             })
-        //         } else {
-        //             this.setState({
-        //                 isLogin: false,
-        //                 userName: ""
-        //             })
-        //         }
-        //     }
-        // })
-    }
     render() {
         return (
             <React.Fragment>

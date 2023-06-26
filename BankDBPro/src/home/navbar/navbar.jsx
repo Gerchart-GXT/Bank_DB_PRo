@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import NavDropdownMenu from '../../component/jsx/nav_dropdown_menu';
+import NavDropdownMenu from './nav_dropdown_menu';
 import MENULIST from './menu_list';
 import CleanLink from './../../component/jsx/clean_link';
 
@@ -9,7 +9,7 @@ class Navbar extends Component {
     render() { 
         return (
             <React.Fragment>
-                <nav className="container-fluid rounded-4 navbar bg-danger-subtle navbar-expand-lg my-3">
+                <nav className="container-fluid rounded-4 navbar bg-danger-subtle navbar-expand-lg my-3 text-center">
                     <div className="container text-center">
                         <CleanLink needClean={false} className="navbar-brand" href="#">{MENULIST.fatherTitle}</CleanLink>
                         <button
